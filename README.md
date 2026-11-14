@@ -37,6 +37,10 @@ It replaces the flat, sprite-based nature and road signs that pz3d still draws a
 
 ## Install
 
+**Steam Workshop (recommended):** subscribe to [pz3d Nature Pack](https://steamcommunity.com/sharedfiles/filedetails/?id=3839749100) and enable it together with pz3d in the game's Mods menu. Steam keeps it updated automatically.
+
+Manual install:
+
 1. Install and enable pz3d first (follow its own instructions).
 2. Download `pz3d_naturepack-vX.Y.Z.zip` from [Releases](../../releases).
 3. Extract it into `%USERPROFILE%\Zomboid\mods\` so you get `Zomboid\mods\pz3d_naturepack\42\mod.info`.
@@ -101,6 +105,10 @@ São 205 modelos para 728 tiles do jogo, todos gerados por código. Nenhum arqui
 Project Zomboid **42.22.2**, [pz3d](https://steamcommunity.com/sharedfiles/filedetails/?id=3807334881) **0.10.4** e [ZombieBuddy](https://github.com/zed-0xff/ZombieBuddy) 2.3.4 ou mais novo.
 
 ### Instalação
+
+**Steam Workshop (recomendado):** assine o [pz3d Nature Pack](https://steamcommunity.com/sharedfiles/filedetails/?id=3839749100) e ative junto com o pz3d no menu Mods do jogo. A Steam atualiza sozinha.
+
+Manual:
 
 1. Instale e ative o pz3d.
 2. Baixe o `pz3d_naturepack-vX.Y.Z.zip` em [Releases](../../releases).
