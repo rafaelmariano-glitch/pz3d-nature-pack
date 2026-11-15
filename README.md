@@ -39,7 +39,7 @@ It replaces the flat, sprite-based nature and road signs that pz3d still draws a
 
 ## Install
 
-**Steam Workshop (recommended):** subscribe to [pz3d Nature Pack](https://steamcommunity.com/sharedfiles/filedetails/?id=3839749100) and enable it together with pz3d in the game's Mods menu. Steam keeps it updated automatically.
+**Steam Workshop (recommended):** subscribe to [pz3d Nature Pack](https://steamcommunity.com/sharedfiles/filedetails/?id=3840522104) and enable it together with pz3d in the game's Mods menu. Steam keeps it updated automatically.
 
 Manual install:
 
@@ -111,7 +111,7 @@ Project Zomboid **42.22.2**, [pz3d](https://steamcommunity.com/sharedfiles/filed
 
 ### Instalação
 
-**Steam Workshop (recomendado):** assine o [pz3d Nature Pack](https://steamcommunity.com/sharedfiles/filedetails/?id=3839749100) e ative junto com o pz3d no menu Mods do jogo. A Steam atualiza sozinha.
+**Steam Workshop (recomendado):** assine o [pz3d Nature Pack](https://steamcommunity.com/sharedfiles/filedetails/?id=3840522104) e ative junto com o pz3d no menu Mods do jogo. A Steam atualiza sozinha.
 
 Manual:
 

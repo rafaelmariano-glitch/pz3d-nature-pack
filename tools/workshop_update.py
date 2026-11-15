@@ -3,6 +3,8 @@
     python tools/workshop_update.py <pasta_do_item> "nota da mudanca"   # envia capa e conteudo
     python tools/workshop_update.py <pasta_do_item> --require 3807334881 3619862853
                                                                         # marca itens obrigatorios
+    python tools/workshop_update.py <pasta_do_item> --create 3807334881 3619862853
+                                                # cria item novo na conta logada e publica tudo
 
 A pasta e a que o jogo usa (Zomboid/Workshop/<nome>): precisa de workshop.txt com id=,
 preview.png e Contents/. Usa o steam_api64.dll do Project Zomboid (app 108600).
@@ -59,12 +61,34 @@ class SubmitResult(C.Structure):      # SubmitItemUpdateResult_t (3404)
     _fields_ = [('result', C.c_int), ('needs_legal', C.c_bool), ('item', C.c_uint64)]
 
 
+class CreateResult(C.Structure):      # CreateItemResult_t (3403)
+    _fields_ = [('result', C.c_int), ('item', C.c_uint64), ('needs_legal', C.c_bool)]
+
+
+class StrArray(C.Structure):         # SteamParamStringArray_t
+    _fields_ = [('strings', C.POINTER(C.c_char_p)), ('count', C.c_int)]
+
+
 class DependencyResult(C.Structure):  # AddUGCDependencyResult_t (3412)
     _fields_ = [('result', C.c_int), ('parent', C.c_uint64), ('child', C.c_uint64)]
 
 
-def upload(st, item, folder, note):
+def create(st):
+    r = st.wait(st.fn('ISteamUGC_CreateItem', C.c_uint64, C.c_uint32, C.c_int)(st.ugc, APP, 0), CreateResult, 3403)
+    print(f'criar item: resultado={r.result} (1 = OK)  id={r.item}  precisa_aceitar_acordo={r.needs_legal}')
+    return r.item if r.result == 1 else None
+
+
+def upload(st, item, folder, note, meta=None):
     h = st.fn('ISteamUGC_StartItemUpdate', C.c_uint64, C.c_uint32, C.c_uint64)(st.ugc, APP, item)
+    if meta:   # item novo: titulo, descricao, tags e visibilidade do workshop.txt
+        txt = lambda n: st.fn('ISteamUGC_' + n, C.c_bool, C.c_uint64, C.c_char_p)
+        txt('SetItemTitle')(st.ugc, h, meta['title'].encode('utf-8'))
+        txt('SetItemDescription')(st.ugc, h, meta['description'].encode('utf-8'))
+        tags = [t.encode('utf-8') for t in meta['tags'].split(';') if t]
+        arr = StrArray((C.c_char_p * len(tags))(*tags), len(tags))
+        st.fn('ISteamUGC_SetItemTags', C.c_bool, C.c_uint64, C.POINTER(StrArray))(st.ugc, h, C.byref(arr))
+        st.fn('ISteamUGC_SetItemVisibility', C.c_bool, C.c_uint64, C.c_int)(st.ugc, h, 0)
     for name, val in (('SetItemContent', 'Contents'), ('SetItemPreview', 'preview.png')):
         path = os.path.abspath(os.path.join(folder, val)).encode('utf-8')
         if not st.fn('ISteamUGC_' + name, C.c_bool, C.c_uint64, C.c_char_p)(st.ugc, h, path):
@@ -93,13 +117,25 @@ def require(st, item, children):
 
 def main(argv):
     folder = os.path.abspath(argv[0])
-    meta = dict(l.split('=', 1) for l in open(os.path.join(folder, 'workshop.txt'), encoding='utf-8').read().splitlines() if '=' in l)
-    item = int(meta['id'])
+    wt = os.path.join(folder, 'workshop.txt')
+    lines = open(wt, encoding='utf-8').read().splitlines()
+    meta = dict(l.split('=', 1) for l in lines if '=' in l)
+    meta['description'] = '\n'.join(l.split('=', 1)[1] for l in lines if l.startswith('description='))
     st = Steam()
     try:
-        if len(argv) > 1 and argv[1] == '--require':
+        if len(argv) > 1 and argv[1] == '--create':
+            # item novo na conta logada; grava o id no workshop.txt e marca os obrigatorios
+            item = create(st)
+            ok = bool(item)
+            if ok:
+                lines = [l for l in lines if not l.startswith('id=')] + [f'id={item}']
+                open(wt, 'w', encoding='utf-8').write('\n'.join(lines) + '\n')
+                ok = upload(st, item, folder, 'First release', meta) and require(st, item, [int(x) for x in argv[2:]])
+        elif len(argv) > 1 and argv[1] == '--require':
+            item = int(meta['id'])
             ok = require(st, item, [int(x) for x in argv[2:]])
         else:
+            item = int(meta['id'])
             ok = upload(st, item, folder, argv[1] if len(argv) > 1 else 'Update')
     finally:
         st.close()
