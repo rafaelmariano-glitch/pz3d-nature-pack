@@ -1,5 +1,7 @@
 # pz3d Nature Pack
 
+![pz3d Nature Pack](docs/banner.png)
+
 **Unofficial add-on for [pz3d](https://pz3d.dev) — Project Zomboid in 3D.**
 It replaces the flat, sprite-based nature and road signs that pz3d still draws as cut-out planes with real textured 3D models.
 
@@ -73,6 +75,7 @@ pz3d supports external model packs: an `assets.json` card list that binds an OBJ
 ## Credits
 
 - **pz3d** by kolpaque — the 3D renderer this pack is made for. This project is not affiliated with pz3d.
+- Logo, cover and banner are rendered from the pack's own models by `generator/branding.py`.
 - **ZombieBuddy** by zed-0xff — Java mod loader used by pz3d.
 - Project Zomboid by The Indie Stone.
 
@@ -83,6 +86,8 @@ MIT — see [LICENSE](LICENSE). Use, fork and build on it freely.
 ---
 
 ## Português
+
+<img src="docs/logo.png" alt="pz3d Nature Pack" width="220" align="right">
 
 **Complemento não oficial para o [pz3d](https://pz3d.dev), o Project Zomboid em 3D.**
 Troca a vegetação, o chão natural, as pedras, a borda da água e as placas de trânsito, que o pz3d ainda desenha como planos recortados, por modelos 3D com textura.

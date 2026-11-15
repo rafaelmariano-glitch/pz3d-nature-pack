@@ -1013,5 +1013,6 @@ if PREVIEW:
     names = ([k for k in keys if k in variants] if exact else
              [n for n in sorted(variants) if not only or any(k in n for k in keys)])
     foliage.render_preview([(n, variants[n][0].tris(), variants[n][1], os.path.join(ASSETS, n)) for n in names], PREVIEW,
-                           cols=int(os.environ.get('PREVIEW_COLS', 8)), cell=int(os.environ.get('PREVIEW_CELL', 200)))
+                           cols=int(os.environ.get('PREVIEW_COLS', 8)), cell=int(os.environ.get('PREVIEW_CELL', 200)),
+                           sprite_dir=os.environ.get('PREVIEW_SPRITES'), floor=os.environ.get('PREVIEW_FLOOR', '1') == '1')
     print('preview:', PREVIEW, len(names))

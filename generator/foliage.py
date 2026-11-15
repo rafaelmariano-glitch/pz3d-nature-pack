@@ -4,7 +4,7 @@
 - add_cards(): espalha cartoes de folha num volume, com normais apontando para fora da copa.
 - render_preview(): rasterizador simples com z-buffer e recorte por alfa, para conferir os modelos.
 """
-import math, random
+import math, os, random
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
@@ -303,7 +303,7 @@ def add_cards(m, center, radii, n, size, mat, rnd, shell=(0.55, 1.0), floor=0.0,
         m.cards.append(([tuple(q) for q in quad], uvs, tuple(nrm), mat))
 
 # ---------------- previa com textura ----------------
-def render_preview(items, out_path, cols=8, cell=200, label_h=18):
+def render_preview(items, out_path, cols=8, cell=200, label_h=18, sprite_dir=None, floor=True):
     """items: lista de (nome, tris, mats, texdir). tris: (p0,p1,p2, uv0,uv1,uv2 ou None, normal, mat)."""
     rows = (len(items) + cols - 1) // cols
     W, H = cols * cell, rows * (cell + label_h)
@@ -327,8 +327,8 @@ def render_preview(items, out_path, cols=8, cell=200, label_h=18):
         img = np.zeros((cell, cell, 3)); img[:] = (196, 202, 190)
         zb = np.full((cell, cell), -1e9)
         # chao do tile
-        tri_list = [(tile[0], tile[1], tile[2], None, None, None, (0, 0, 1), '__chao'),
-                    (tile[0], tile[2], tile[3], None, None, None, (0, 0, 1), '__chao')] + list(tris)
+        tri_list = ([(tile[0], tile[1], tile[2], None, None, None, (0, 0, 1), '__chao'),
+                     (tile[0], tile[2], tile[3], None, None, None, (0, 0, 1), '__chao')] if floor else []) + list(tris)
         for t in tri_list:
             p = np.array(t[:3], float); uv = t[3:6]; n = np.array(t[6], float); mat = t[7]
             s2, dpt = proj(p); s2 = s2 * sc + off
@@ -369,6 +369,9 @@ def render_preview(items, out_path, cols=8, cell=200, label_h=18):
                 rgb = np.broadcast_to(np.clip(col, 0, 255), ok.shape + (3,))
             sub[ok] = z[ok]
             img[y0:y1 + 1, x0:x1 + 1][ok] = rgb[ok]
+        if sprite_dir:   # recorte com fundo transparente, para logo e capas
+            rgba = np.dstack([np.clip(img, 0, 255), (zb > -1e9) * 255.0]).astype(np.uint8)
+            Image.fromarray(rgba, 'RGBA').save(os.path.join(sprite_dir, name + '.png'))
         x, y = (idx % cols) * cell, (idx // cols) * (cell + label_h)
         canvas.paste(Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)), (x, y))
         dr.text((x + 4, y + cell + 2), name, fill=(0, 0, 0))

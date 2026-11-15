@@ -6,7 +6,7 @@
 Requer Python 3.10+, Pillow e numpy (pip install pillow numpy).
 """
 import os, shutil, subprocess, sys, zipfile
-from PIL import Image, ImageDraw, ImageFont
+import tempfile
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 MOD_ID = 'pz3d_naturepack'
@@ -14,23 +14,10 @@ VERSION = '0.11.0'
 DIST = os.path.join(ROOT, 'dist')
 MOD = os.path.join(DIST, MOD_ID)
 PREVIEW = os.path.join(ROOT, 'docs', 'preview_models.png')
-
-
-def poster(src, dst, size):
-    """capa quadrada: recorte da previa dos modelos com o nome do pack."""
-    im = Image.open(src).convert('RGB')
-    w, h = im.size
-    side = min(w, h)
-    im = im.crop(((w - side) // 2, 0, (w - side) // 2 + side, side)).resize((size, size), Image.LANCZOS)
-    dr = ImageDraw.Draw(im)
-    try:
-        f = ImageFont.truetype('C:/Windows/Fonts/segoeuib.ttf', size // 9)
-    except OSError:
-        f = ImageFont.load_default()
-    band = size // 5
-    dr.rectangle([0, size - band, size, size], fill=(20, 40, 24))
-    dr.text((size / 2, size - band / 2), 'pz3d Nature Pack', font=f, fill=(235, 240, 230), anchor='mm')
-    im.save(dst)
+BRAND_MODELS = ['arbusto_grande_verde', 'muda_folhosa_vermelho_out', 'muda_pinheiro', 'sebe_bola',
+                'muda_folhosa_olaia_flor', 'samambaia_grande', 'grama_alta_verao', 'pedra_media_1',
+                'placa_curva_dir_py', 'muda_betula_ouro_out', 'arbusto_medio_outono', 'planta_folha_larga',
+                'sebe_cone', 'muda_pinheiro_neve', 'placa_pare_px']
 
 
 def main():
@@ -44,16 +31,19 @@ def main():
         'planta_folha_larga', 'planta_alta', 'folhas_secas_0', 'pedra_media_1', 'laje_2', 'chao_grama_escura',
         'chao_terra', 'placa_westpoint_esq_esq_py', 'placa_curva_dir_py', 'placa_pare_px', 'placa_zigue_px']))
     subprocess.check_call([sys.executable, os.path.join(ROOT, 'generator', 'make_pack.py'), MOD, PREVIEW], env=env)
-    # capa: 3x3 com os modelos mais vistosos
-    hero = os.path.join(DIST, '_capa.png')
-    env_h = dict(os.environ, PREVIEW_COLS='3', PREVIEW_CELL='300', PREVIEW_EXACT='1', PREVIEW_ONLY=','.join([
-        'arbusto_grande_verde', 'muda_folhosa_vermelho_out', 'muda_pinheiro', 'sebe_bola', 'muda_folhosa_olaia_flor',
-        'samambaia_grande', 'grama_alta_verao', 'pedra_media_1', 'placa_curva_dir_py']))
-    import tempfile
-    tmp_mod = tempfile.mkdtemp(prefix='pz3d_capa_')
-    subprocess.check_call([sys.executable, os.path.join(ROOT, 'generator', 'make_pack.py'), tmp_mod, hero], env=env_h)
-    shutil.rmtree(tmp_mod, ignore_errors=True)
-    poster(hero, os.path.join(MOD, '42', 'poster.png'), 512)
+    # logo, capas e banner: modelos do pack renderizados com fundo transparente
+    tmp = tempfile.mkdtemp(prefix='pz3d_brand_')
+    spr, tmp_mod = os.path.join(tmp, 'sprites'), os.path.join(tmp, 'mod')
+    os.makedirs(spr)
+    env_b = dict(os.environ, PREVIEW_SPRITES=spr, PREVIEW_FLOOR='0', PREVIEW_COLS='4', PREVIEW_CELL='600',
+                 PREVIEW_EXACT='1', PREVIEW_ONLY=','.join(BRAND_MODELS))
+    subprocess.check_call([sys.executable, os.path.join(ROOT, 'generator', 'make_pack.py'), tmp_mod,
+                           os.path.join(tmp, 'sheet.png')], env=env_b)
+    brand = os.path.join(tmp, 'out')
+    subprocess.check_call([sys.executable, os.path.join(ROOT, 'generator', 'branding.py'), spr, brand])
+    for fn in ('logo.png', 'banner.png', 'cover.png'):
+        shutil.copy(os.path.join(brand, fn), os.path.join(ROOT, 'docs', fn))
+    shutil.copy(os.path.join(brand, 'poster.png'), os.path.join(MOD, '42', 'poster.png'))
 
     # zip para o release do GitHub: a pasta do mod pronta para Zomboid/mods
     zpath = os.path.join(DIST, f'{MOD_ID}-v{VERSION}.zip')
@@ -68,8 +58,8 @@ def main():
     ws = os.path.join(DIST, 'workshop', 'pz3dNaturePack')
     shutil.rmtree(ws, ignore_errors=True)
     shutil.copytree(MOD, os.path.join(ws, 'Contents', 'mods', MOD_ID))
-    poster(hero, os.path.join(ws, 'preview.png'), 256)
-    os.remove(hero)
+    shutil.copy(os.path.join(brand, 'preview.png'), os.path.join(ws, 'preview.png'))   # 256x256
+    shutil.rmtree(tmp, ignore_errors=True)
     print('workshop:', ws)
 
     if '--install' in sys.argv:
